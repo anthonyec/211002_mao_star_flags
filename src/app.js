@@ -9,6 +9,8 @@ const keyboard = {
     return this[key]?.down;
   },
   pressed(key) {
+    // TODO: Reset after frame and not function call because otherwise 2
+    // pressed functions for the same key can't function. Only the first will work.
     if (this[key]?.down && !this[key]?.justPressed) {
       this[key].justPressed = true;
       return true;
@@ -23,7 +25,10 @@ const keyboard = {
 const state = {
   circleRadius: 50,
   flagKeys: Object.keys(flags),
-  currentFlagKeyIndex: 0
+  currentFlagKeyIndex: 0,
+  selectionColor: 'black',
+  rotate: false,
+  rotation: 0
 };
 
 let internalStore = {};
@@ -64,7 +69,10 @@ function createBlinker(length = 100) {
 }
 
 const blink = createBlinker(30);
-const blink2 = createBlinker(5);
+
+function deg2rad(deg = 0) {
+  return deg * Math.PI / 180;
+}
 
 async function loadImage(src = '') {
   return new Promise((resolve, reject) => {
@@ -91,6 +99,15 @@ async function setup() {
   loadFlag();
 }
 
+function drawRotationGizmo(x, y, radius, rotation) {
+  const rotationRad = deg2rad(rotation - 90);
+
+  context.beginPath();
+  context.moveTo(x, y);
+  context.lineTo(x + (radius * Math.cos(rotationRad)), y + (radius * Math.sin(rotationRad)));
+  context.stroke();
+}
+
 async function draw() {
   context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -107,7 +124,8 @@ async function draw() {
 
     store[state.flagKeys[state.currentFlagKeyIndex]] = {
       position: { x: percentX, y: percentY },
-      radius: state.circleRadius
+      radius: state.circleRadius,
+      rotation: state.rotation
     };
 
     console.log(store);
@@ -140,23 +158,33 @@ async function draw() {
     loadFlag();
   }
 
-  if (keyboard.down('q') && state.circleRadius > 1) {
-    state.circleRadius -= 0.2;
+  if (!state.rotate) {
+    if (keyboard.down('q') && state.circleRadius > 1) {
+      state.circleRadius -= 0.2;
+    }
+
+    if (keyboard.down('e') && state.circleRadius < 400) {
+      state.circleRadius += 0.2;
+    }
+  } else {
+    if (keyboard.down('q') && state.circleRadius > 1) {
+      state.rotation -= 0.5;
+    }
+
+    if (keyboard.down('e') && state.circleRadius < 400) {
+      state.rotation += 0.5;
+    }
   }
 
-  if (keyboard.down('e') && state.circleRadius < 400) {
-    state.circleRadius += 0.2;
+  if (keyboard.pressed('1')) {
+    state.selectionColor = state.selectionColor === 'white' ? 'black' : 'white';
   }
-
-  context.strokeStyle = 'white';
-  context.beginPath();
-  context.arc(mouse.x, mouse.y, state.circleRadius, 0, 2 * Math.PI);
-  context.stroke();
 
   if (state.currentImage && store[state.flagKeys[state.currentFlagKeyIndex]]) {
     const {
       position,
-      radius
+      radius,
+      rotation = 0
     } = store[state.flagKeys[state.currentFlagKeyIndex]];
 
     const aspectRatio = state.currentImage.width / state.currentImage.height;
@@ -166,7 +194,32 @@ async function draw() {
     context.beginPath();
     context.arc(canvas.width * position.x, height * position.y, radius, 0, 2 * Math.PI);
     context.stroke();
+
+    drawRotationGizmo(canvas.width * position.x, height * position.y, radius, rotation);
   }
+
+  if (keyboard.pressed('w')) {
+    state.rotate = !state.rotate;
+
+    if (state.rotate) {
+      console.log('rotation');
+    } else {
+      console.log('scale');
+    }
+  }
+
+  if (keyboard.pressed('-')) {
+    console.log('reset');
+    state.rotation = 0;
+    state.circleRadius = 50;
+  }
+
+  context.strokeStyle = state.selectionColor;
+  context.beginPath();
+  context.arc(mouse.x, mouse.y, state.circleRadius, 0, 2 * Math.PI);
+  context.stroke();
+
+  drawRotationGizmo(mouse.x, mouse.y, state.circleRadius, state.rotation);
 
   window.requestAnimationFrame(draw);
 }
