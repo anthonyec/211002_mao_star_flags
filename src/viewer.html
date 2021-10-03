@@ -4,7 +4,8 @@
   }
 
   body {
-    background: gray;
+    color: black;
+    background: white;
     font-size: 18px;
     display: flex;
     align-items: center;
@@ -13,20 +14,17 @@
   }
 
   a, a:visited, a:hover {
-    color: white;
+    color: black;
   }
 
   canvas {
+    background: white;
     outline: 1px solid black;
   }
 </style>
 
 <canvas width="800" height="600"></canvas>
-<div>
-  Previous/Next flag: <kbd>A</kbd>/<kbd>D</kbd>
-  Decrease/Increase circle: <kbd>Q</kbd>/<kbd>E</kbd>
-</div>
 
-<a href="viewer.html">Viewer</a>
+<a href="index.html">Editor</a>
 
-<script src="app.js" type="module"></script>
+<script src="viewer.js" type="module"></script>

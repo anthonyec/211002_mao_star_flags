@@ -1,4 +1,5 @@
 import flags from './flags';
+import { loadImage, deg2rad } from './utils';
 
 const canvas = document.querySelector('canvas');
 const context = canvas.getContext('2d');
@@ -69,22 +70,6 @@ function createBlinker(length = 100) {
 }
 
 const blink = createBlinker(30);
-
-function deg2rad(deg = 0) {
-  return deg * Math.PI / 180;
-}
-
-async function loadImage(src = '') {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-
-    img.src = src;
-
-    img.onload = function() {
-      resolve(img);
-    }
-  })
-}
 
 async function loadFlag() {
   const flagUrl = flags[state.flagKeys[state.currentFlagKeyIndex]];
