@@ -49,6 +49,23 @@ const store = new Proxy(internalStore, {
   }
 });
 
+function createBlinker(length = 100) {
+  let t = 0;
+
+  return () => {
+    t += 1;
+
+    if (t > length) {
+      t = 0;
+    }
+
+    return t < (length * 0.5);
+  }
+}
+
+const blink = createBlinker(30);
+const blink2 = createBlinker(5);
+
 async function loadImage(src = '') {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -131,7 +148,7 @@ async function draw() {
     state.circleRadius += 0.2;
   }
 
-  context.strokeStyle = 'black';
+  context.strokeStyle = 'white';
   context.beginPath();
   context.arc(mouse.x, mouse.y, state.circleRadius, 0, 2 * Math.PI);
   context.stroke();
@@ -145,7 +162,7 @@ async function draw() {
     const aspectRatio = state.currentImage.width / state.currentImage.height;
     const height = canvas.width * (1 / aspectRatio);
 
-    context.strokeStyle = 'white';
+    context.strokeStyle = blink() ? 'white' : 'black';
     context.beginPath();
     context.arc(canvas.width * position.x, height * position.y, radius, 0, 2 * Math.PI);
     context.stroke();
