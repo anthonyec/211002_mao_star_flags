@@ -5,6 +5,8 @@ import { deg2rad, rad2deg, loadImage, getPointOnCircleEdge, getRotationBetween, 
 const canvas = document.querySelector('canvas');
 const context = canvas.getContext('2d');
 
+const BASE_WIDTH = 800;
+
 const keyboard = {
   down(key) {
     return this[key]?.down;
@@ -26,8 +28,9 @@ const keyboard = {
 
 const state = {
   rotation: 0,
-  currentFlagIndex: 60,
-  flags: []
+  currentFlagIndex: 0,
+  flags: [],
+  scale: 8
 };
 
 async function setup() {
@@ -59,6 +62,7 @@ function draw() {
     context.save();
 
     const rotation = data?.rotation ? -data.rotation : 0;
+    const radius = (BASE_WIDTH / data.radius) / 100;
 
     const canvasMiddleX = canvas.width / 2;
     const canvasMiddleY = canvas.height / 2;
@@ -66,13 +70,12 @@ function draw() {
     const aspectRatio = 1 / (image.width / image.height);
     const drawWidth = canvas.width;
     const drawHeight = drawWidth * aspectRatio;
-    const drawX = 0;
-    const drawY = 0;
     const starX = drawWidth * data.position.x;
     const starY = drawHeight * data.position.y;
 
     context.translate(canvasMiddleX, canvasMiddleY);
     context.rotate(deg2rad(rotation));
+    context.scale(state.scale * radius, state.scale * radius)
     context.drawImage(image, -starX, -starY, drawWidth, drawWidth * aspectRatio);
     context.translate(0, 0);
 
@@ -96,15 +99,25 @@ function draw() {
     state.currentFlagIndex += 1;
   }
 
-  context.beginPath();
-  context.moveTo(canvas.width / 2, 0);
-  context.lineTo(canvas.width / 2, canvas.height);
-  context.stroke();
+  if (keyboard.down('[')) {
+    state.scale -= 0.1;
+  }
 
-  context.beginPath();
-  context.moveTo(0, canvas.height / 2);
-  context.lineTo(canvas.width, canvas.height / 2);
-  context.stroke();
+  if (keyboard.down(']')) {
+    state.scale += 0.1;
+  }
+
+  if (keyboard.down('-')) {
+    context.beginPath();
+    context.moveTo(canvas.width / 2, 0);
+    context.lineTo(canvas.width / 2, canvas.height);
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(0, canvas.height / 2);
+    context.lineTo(canvas.width, canvas.height / 2);
+    context.stroke();
+  }
 
   window.requestAnimationFrame(draw);
 }
